@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pedro Lucas — Automação e Inteligência para Negócios</title>
+  <meta name="description" content="Soluções de automação, dashboards e vaults de conhecimento para confeitarias, lojas, restaurantes, salões e pet shops." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ds-bg: #0a0a0a;
+      --ds-nav-bg: rgba(10, 10, 10, 0.75);
+      --ds-pill-bg: rgba(255,255,255,0.06);
+      --ds-card: #111111;
+      --ds-card2: #161616;
+      --ds-border: rgba(255,255,255,0.08);
+      --ds-border-hover: rgba(255,255,255,0.18);
+      --ds-cta-bg: #c8ff00;
+      --ds-cta-txt: #0a0a0a;
+      --ds-muted: rgba(255,255,255,0.45);
+      --ds-text: #f0f0f0;
+      --ds-text-sec: rgba(255,255,255,0.6);
+      --ds-accent-orange: #ff8c42;
+      --ds-accent-purple: #a78bfa;
+      --ds-accent-gold: #fbbf24;
+      --ds-accent-emerald: #34d399;
+      --ds-accent-rose: #fb7185;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--ds-bg);
+      color: var(--ds-text);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .font-playfair { font-family: 'Playfair Display', serif; }
+    .font-dm { font-family: 'DM Mono', monospace; }
+
+    /* ── Layout ── */
+    .wrapper { width: 90%; margin: 0 auto; }
+    @media (min-width: 768px) { .wrapper { width: 85%; } }
+    @media (min-width: 1024px) { .wrapper { width: 80%; } }
+    @media (min-width: 1536px) { .wrapper { width: 55%; max-width: 72rem; } }
+
+    /* ── Noise overlay ── */
+    .noise {
+      position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+      opacity: 0.018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+      z-index: 1000;
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.35rem 0.5rem;
+      background: var(--ds-nav-bg);
+      backdrop-filter: blur(22px);
+      border: 1px solid var(--ds-border);
+      border-radius: 9999px;
+    }
+    .navbar a, .navbar button {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.82rem; font-weight: 300;
+      color: var(--ds-text-sec);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      border: none; background: none; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .navbar a:hover, .navbar button:hover {
+      background: var(--ds-pill-bg);
+      color: var(--ds-text);
+    }
+    .navbar .cta-btn {
+      background: var(--ds-cta-bg);
+      color: var(--ds-cta-txt);
+      font-weight: 500;
+      padding: 0.5rem 1.2rem;
+    }
+    .navbar .cta-btn:hover { opacity: 0.9; }
+
+    /* ── Mobile nav ── */
+    .mobile-toggle {
+      display: none;
+      position: fixed; top: 1rem; right: 1rem; z-index: 1001;
+      width: 44px; height: 44px;
+      border-radius: 9999px;
+      background: var(--ds-nav-bg);
+      backdrop-filter: blur(22px);
+      border: 1px solid var(--ds-border);
+      color: var(--ds-text); font-size: 1.2rem;
+      cursor: pointer;
+      align-items: center; justify-content: center;
+    }
+    .mobile-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(12px);
+      flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+    }
+    .mobile-overlay.active { display: flex; }
+    .mobile-overlay a {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem; color: var(--ds-text-sec);
+      text-decoration: none; padding: 0.75rem 2rem;
+      border: 1px solid var(--ds-border); border-radius: 1rem;
+      width: 80%; text-align: center;
+      transition: all 0.2s;
+    }
+    .mobile-overlay a:hover { background: var(--ds-pill-bg); color: var(--ds-text); }
+    @media (max-width: 767px) {
+      .navbar { display: none; }
+      .mobile-toggle { display: flex; }
+      .side-label { display: none; }
+    }
+
+    /* ── Side labels ── */
+    .side-label {
+      position: fixed; z-index: 100;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--ds-muted);
+      writing-mode: vertical-rl;
+    }
+    .side-label.left { left: 1.5rem; top: 50%; transform: translateY(-50%) rotate(180deg); }
+    .side-label.right { right: 1.5rem; top: 50%; transform: translateY(-50%); }
+    @media (max-width: 1279px) { .side-label { display: none; } }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 7rem 0 4rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    @media (min-width: 1024px) {
+      .hero { grid-template-columns: 2fr 5fr; gap: 3rem; }
+    }
+
+    .hero-name-card {
+      position: relative; overflow: hidden;
+      border: 1px solid var(--ds-border);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      background: var(--ds-card);
+    }
+    .hero-blob {
+      position: absolute; width: 120px; height: 120px;
+      border-radius: 50%; filter: blur(60px); opacity: 0.15;
+    }
+    .hero-blob.purple { background: var(--ds-accent-purple); top: -20px; right: -20px; animation: drift 12s ease-in-out infinite; }
+    .hero-blob.orange { background: var(--ds-accent-orange); bottom: -20px; left: -20px; animation: drift 14s ease-in-out infinite reverse; }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(15px, 10px); }
+    }
+
+    .hero-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 4vw, 4rem);
+      font-weight: 700; line-height: 1.1;
+      margin-bottom: 0.5rem;
+      position: relative; z-index: 1;
+    }
+    .hero-handle {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem; color: var(--ds-muted);
+      display: flex; align-items: center; gap: 0.75rem;
+      position: relative; z-index: 1;
+    }
+    .hero-handle::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--ds-border);
+    }
+
+    .hero-social-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.5rem; margin-top: 1.5rem;
+      position: relative; z-index: 1;
+    }
+    .hero-social-cell {
+      display: flex; flex-direction: column;
+      padding: 1rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 1rem;
+      text-decoration: none; color: var(--ds-text);
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .hero-social-cell:hover {
+      border-color: var(--ds-border-hover);
+      background: var(--ds-pill-bg);
+    }
+    .hero-social-cell .label {
+      font-size: 0.6rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ds-muted);
+    }
+    .hero-social-cell .value {
+      font-size: 0.85rem; font-weight: 500; margin-top: 0.25rem;
+    }
+
+    /* Right hero */
+    .hero-right { display: flex; flex-direction: column; gap: 1rem; }
+
+    .hero-status {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; color: var(--ds-muted);
+      letter-spacing: 0.05em;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 9999px;
+      width: fit-content;
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 4px rgba(74,222,128,0.4);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .hero-bio-card {
+      border: 1px solid var(--ds-border);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      background: var(--ds-card);
+      transition: border-color 0.25s;
+    }
+    .hero-bio-card:hover { border-color: var(--ds-border-hover); }
+    .hero-bio-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+      font-weight: 700; line-height: 1.3;
+      margin-bottom: 1rem;
+    }
+    .hero-bio-card p {
+      font-size: 0.88rem; color: var(--ds-text-sec);
+      line-height: 1.7; margin-bottom: 1rem;
+    }
+    .hero-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .hero-tag {
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 9999px;
+      font-size: 0.6rem; text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ds-text-sec);
+    }
+
+    .hero-marquee {
+      overflow: hidden; border: 1px solid var(--ds-border);
+      border-radius: 1rem; padding: 0.75rem 0;
+      background: var(--ds-card);
+    }
+    .marquee-track {
+      display: flex; gap: 1rem;
+      animation: scroll 25s linear infinite;
+      width: max-content;
+    }
+    .marquee-item {
+      flex-shrink: 0;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 0.75rem;
+      font-size: 0.72rem; color: var(--ds-text-sec);
+      background: var(--ds-card2);
+      white-space: nowrap;
+    }
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ── Sections ── */
+    section { padding: 5rem 0; }
+
+    .section-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+    .section-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem; text-transform: uppercase;
+      letter-spacing: 0.2em; color: var(--ds-muted);
+      margin-bottom: 2rem;
+    }
+    .section-link {
+      font-size: 0.75rem; color: var(--ds-accent-gold);
+      text-decoration: none; font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    .section-link:hover { opacity: 0.7; }
+
+    /* ── Services Grid ── */
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 640px) {
+      .services-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (min-width: 1024px) {
+      .services-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .service-card {
+      padding: 2rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 1.5rem;
+      background: var(--ds-card);
+      transition: border-color 0.25s, transform 0.25s;
+      cursor: default;
+    }
+    .service-card:hover {
+      border-color: var(--ds-border-hover);
+      transform: translateY(-2px);
+    }
+    .service-card .icon {
+      width: 48px; height: 48px;
+      border-radius: 0.75rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+    .service-card h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .service-card p {
+      font-size: 0.82rem; color: var(--ds-text-sec);
+      line-height: 1.6;
+    }
+    .service-card .cost {
+      display: inline-block; margin-top: 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      background: rgba(251,191,36,0.1);
+      color: var(--ds-accent-gold);
+      border: 1px solid rgba(251,191,36,0.2);
+    }
+
+    /* ── Pain Points ── */
+    .pain-grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .pain-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .pain-card {
+      padding: 2rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 1.5rem;
+      background: var(--ds-card);
+      transition: border-color 0.25s;
+    }
+    .pain-card:hover { border-color: var(--ds-border-hover); }
+
+    .pain-card .sector {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem; text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--ds-accent-orange);
+      margin-bottom: 0.75rem;
+    }
+    .pain-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700;
+      margin-bottom: 0.75rem; line-height: 1.3;
+    }
+    .pain-card .chain {
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .pain-step {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      font-size: 0.82rem; color: var(--ds-text-sec);
+      line-height: 1.5;
+    }
+    .pain-step .step-label {
+      flex-shrink: 0;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem; text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      min-width: 80px; text-align: center;
+    }
+    .step-dor { background: rgba(251,113,133,0.15); color: var(--ds-accent-rose); border: 1px solid rgba(251,113,133,0.2); }
+    .step-custo { background: rgba(255,140,66,0.15); color: var(--ds-accent-orange); border: 1px solid rgba(255,140,66,0.2); }
+    .step-solucao { background: rgba(52,211,153,0.15); color: var(--ds-accent-emerald); border: 1px solid rgba(52,211,153,0.2); }
+    .step-beneficio { background: rgba(167,139,250,0.15); color: var(--ds-accent-purple); border: 1px solid rgba(167,139,250,0.2); }
+
+    .pain-card .proof {
+      margin-top: 1rem; padding-top: 1rem;
+      border-top: 1px solid var(--ds-border);
+      font-size: 0.78rem; color: var(--ds-muted);
+      font-style: italic;
+    }
+
+    /* ── Journey ── */
+    .journey-grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    @media (min-width: 768px) {
+      .journey-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .journey-col h3 {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.15em; color: var(--ds-muted);
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .journey-col h3::before { content: '>_'; color: var(--ds-accent-emerald); }
+
+    .journey-item {
+      padding: 1.25rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 1rem;
+      background: var(--ds-card);
+      margin-bottom: 0.75rem;
+      transition: border-color 0.25s;
+    }
+    .journey-item:hover { border-color: var(--ds-border-hover); }
+    .journey-item .role {
+      font-size: 0.95rem; font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .journey-item .org {
+      font-size: 0.82rem; color: var(--ds-text-sec);
+    }
+    .journey-item .period {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem; color: var(--ds-muted);
+      margin-top: 0.5rem;
+    }
+    .journey-item .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.75rem; }
+    .journey-item .tag {
+      font-size: 0.55rem; text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      border: 1px solid var(--ds-border);
+      color: var(--ds-text-sec);
+    }
+
+    /* ── CTA ── */
+    .cta-section { text-align: center; }
+    .cta-card {
+      display: inline-block;
+      padding: 2.5rem 3rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 1.5rem;
+      background: var(--ds-card);
+      text-decoration: none; color: var(--ds-text);
+      transition: border-color 0.25s;
+      max-width: 100%;
+    }
+    .cta-card:hover { border-color: var(--ds-cta-bg); }
+    .cta-card .email {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.2rem; font-weight: 500;
+      color: var(--ds-cta-bg);
+      margin-bottom: 0.75rem;
+    }
+    .cta-card .tagline {
+      font-size: 0.85rem; color: var(--ds-text-sec);
+      max-width: 32ch; margin: 0 auto;
+    }
+    .cta-socials {
+      display: flex; justify-content: center;
+      gap: 0.75rem; margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .cta-socials a {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border: 1px solid var(--ds-border);
+      border-radius: 9999px;
+      font-size: 0.78rem; color: var(--ds-text-sec);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .cta-socials a:hover {
+      border-color: var(--ds-border-hover);
+      background: var(--ds-pill-bg);
+      color: var(--ds-text);
+    }
+    .cta-cta-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      margin-top: 2rem;
+      padding: 0.75rem 2rem;
+      background: var(--ds-cta-bg);
+      color: var(--ds-cta-txt);
+      border: none; border-radius: 9999px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .cta-cta-btn:hover { opacity: 0.85; }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid var(--ds-border);
+      padding: 1.5rem 0 2rem;
+      display: flex; flex-wrap: wrap;
+      justify-content: space-between; align-items: center;
+      gap: 1rem;
+    }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ds-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--ds-text); }
+    .footer-copy, .footer-loc {
+      font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ds-muted);
+    }
+
+    /* ── Utilities ── */
+    .flex-center { display: flex; align-items: center; justify-content: center; }
+    .gap-sm { gap: 0.5rem; }
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <!-- Side labels -->
+  <div class="side-label left">AUTOMAÇÃO &bull; INTELIGÊNCIA</div>
+  <div class="side-label right">PEDRO LUCAS</div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="#servicos">Serviços</a>
+    <a href="#dores">Dores</a>
+    <a href="#setores">Setores</a>
+    <a href="#contato">Contato</a>
+    <a href="#contato" class="cta-btn">Falar comigo →</a>
+  </nav>
+
+  <!-- Mobile nav -->
+  <button class="mobile-toggle" onclick="document.getElementById('mobNav').classList.toggle('active')" aria-label="Menu">☰</button>
+  <div class="mobile-overlay" id="mobNav">
+    <a href="#servicos" onclick="this.parentElement.classList.remove('active')">Serviços</a>
+    <a href="#dores" onclick="this.parentElement.classList.remove('active')">Dores</a>
+    <a href="#setores" onclick="this.parentElement.classList.remove('active')">Setores</a>
+    <a href="#contato" onclick="this.parentElement.classList.remove('active')">Contato</a>
+    <a href="#contato" onclick="this.parentElement.classList.remove('active')" style="background:var(--ds-cta-bg);color:var(--ds-cta-txt);font-weight:600;">Falar comigo →</a>
+  </div>
+
+  <main class="wrapper">
+
+    <!-- ══════ HERO ══════ -->
+    <section class="hero" id="hero">
+      <!-- Left: Name card -->
+      <div class="hero-name-card">
+        <div class="hero-blob purple"></div>
+        <div class="hero-blob orange"></div>
+        <h1 class="hero-name">Pedro<br/>Lucas</h1>
+        <div class="hero-handle">@pedrolucas</div>
+        <div class="hero-social-grid">
+          <a href="https://t.me/horoborusobsidian_bot" class="hero-social-cell" target="_blank" rel="noopener">
+            <span class="label">Telegram</span>
+            <span class="value">@horoborus_bot</span>
+          </a>
+          <a href="#contato" class="hero-social-cell">
+            <span class="label">Email</span>
+            <span class="value">pedro@lucas.com</span>
+          </a>
+          <a href="#contato" class="hero-social-cell">
+            <span class="label">WhatsApp</span>
+            <span class="value">Fale comigo</span>
+          </a>
+          <a href="#servicos" class="hero-social-cell">
+            <span class="label">Serviços</span>
+            <span class="value">Ver mais →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: Bio + status -->
+      <div class="hero-right">
+        <div class="hero-status">
+          <span class="status-dot"></span>
+          Automação &bull; Dashboards &bull; Vaults de Conhecimento &bull; São Paulo
+        </div>
+        <div class="hero-bio-card">
+          <h2>Transformo caos operacional em processos inteligentes para negócios locais.</h2>
+          <p>
+            Especialista em automação de WhatsApp, dashboards financeiros e vaults de conhecimento.
+            Trabalho com confeitarias, lojas, restaurantes, salões e pet shops que querem crescer
+            sem depender da memória das pessoas. Cada solução é desenhada para eliminar pedidos perdidos,
+            reduzir custos invisíveis e proteger o saber do negócio.
+          </p>
+          <div class="hero-tags">
+            <span class="hero-tag">WhatsApp Bot</span>
+            <span class="hero-tag">Dashboard</span>
+            <span class="hero-tag">Vault</span>
+            <span class="hero-tag">Automação</span>
+            <span class="hero-tag">Relatórios</span>
+            <span class="hero-tag">Follow-up</span>
+          </div>
+        </div>
+
+        <!-- Marquee of sectors -->
+        <div class="hero-marquee">
+          <div class="marquee-track">
+            <span class="marquee-item">🧁 Confeitarias</span>
+            <span class="marquee-item">🛍️ Lojas & Comércios</span>
+            <span class="marquee-item">🍽️ Restaurantes</span>
+            <span class="marquee-item">✂️ Salões de Beleza</span>
+            <span class="marquee-item">🐾 Pet Shops</span>
+            <span class="marquee-item">📊 Dashboards</span>
+            <span class="marquee-item">🤖 Bots WhatsApp</span>
+            <span class="marquee-item">📋 Vaults</span>
+            <!-- Duplicate for infinite scroll -->
+            <span class="marquee-item">🧁 Confeitarias</span>
+            <span class="marquee-item">🛍️ Lojas & Comércios</span>
+            <span class="marquee-item">🍽️ Restaurantes</span>
+            <span class="marquee-item">✂️ Salões de Beleza</span>
+            <span class="marquee-item">🐾 Pet Shops</span>
+            <span class="marquee-item">📊 Dashboards</span>
+            <span class="marquee-item">🤖 Bots WhatsApp</span>
+            <span class="marquee-item">📋 Vaults</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ SERVIÇOS ══════ -->
+    <section id="servicos">
+      <div style="display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;">
+        <h2 class="section-heading">Soluções</h2>
+        <a href="#dores" class="section-link">Ver as dores que resolvo →</a>
+      </div>
+      <p class="section-sub">_ automação &bull; inteligência &bull; processos</p>
+
+      <div class="services-grid">
+        <!-- Bot WhatsApp -->
+        <div class="service-card">
+          <div class="icon" style="background:rgba(52,211,153,0.12);color:var(--ds-accent-emerald);">🤖</div>
+          <h3>Bot WhatsApp 24h</h3>
+          <p>Responde automaticamente pedidos, dúvidas e agendamentos. Cardápio digital com preços. Pedidos caem direto numa planilha — sem digitação.</p>
+          <span class="cost">Elimina pedidos perdidos</span>
+        </div>
+
+        <!-- Dashboard Financeiro -->
+        <div class="service-card">
+          <div class="icon" style="background:rgba(251,191,36,0.12);color:var(--ds-accent-gold);">📊</div>
+          <h3>Dashboard Financeiro</h3>
+          <p>Cruza vendas × custos em tempo real. Relatório diário no Telegram. Alerta quando custo > receita. Lucro visível, não achismo.</p>
+          <span class="cost">Custo visível em tempo real</span>
+        </div>
+
+        <!-- Vault de Conhecimento -->
+        <div class="service-card">
+          <div class="icon" style="background:rgba(167,139,250,0.12);color:var(--ds-accent-purple);">📋</div>
+          <h3>Vault de Conhecimento</h3>
+          <p>Receitas documentadas, processos padronizados, checklists de produção. Quando alguém sai, o conhecimento fica na empresa.</p>
+          <span class="cost">Protege o saber do negócio</span>
+        </div>
+
+        <!-- Gestão de Estoque -->
+        <div class="service-card">
+          <div class="icon" style="background:rgba(255,140,66,0.12);color:var(--ds-accent-orange);">📦</div>
+          <h3>Gestão de Estoque</h3>
+          <p>Dashboard que cruza vendas × compras. Alerta automático quando produto atinge ponto de pedido. Relatório semanal de giro.</p>
+          <span class="cost">Capital para girar, não parar</span>
+        </div>
+
+        <!-- Agendamento & Lembretes -->
+        <div class="service-card">
+          <div class="icon" style="background:rgba(251,113,133,0.12);color:var(--ds-accent-rose);">⏰</div>
+          <h3>Agendamento & Lembretes</h3>
+          <p>Lembrete automático 24h antes. Lista de espera inteligente. Quando cancela, avisa o próximo da fila. Agenda sempre lotada.</p>
+          <span class="cost">Zero buraco na agenda</span>
+        </div>
+
+        <!-- Follow-up Automático -->
+        <div class="service-card">
+          <div class="icon" style="background:rgba(52,211,153,0.12);color:var(--ds-accent-emerald);">💬</div>
+          <h3>Follow-up Automático</h3>
+          <p>Mensagem 7 dias após o serviço: "Tá ficando bom? Quer agendar de novo?" Indicações convertem. Clientes voltam. Receita cresce.</p>
+          <span class="cost">Indicação em cliente fiel</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ DORES ══════ -->
+    <section id="dores">
+      <div style="display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;">
+        <h2 class="section-heading">Dores que Resolvo</h2>
+      </div>
+      <p class="section-sub">_ custo oculto → solução → resultado comprovado</p>
+
+      <div class="pain-grid">
+
+        <!-- Cadeia 1 -->
+        <div class="pain-card">
+          <div class="sector">🧁 Confeitaria • WhatsApp</div>
+          <h3>Pedidos Perdidos no WhatsApp</h3>
+          <div class="chain">
+            <div class="pain-step"><span class="step-label step-dor">Dor</span> 30+ pedidos/dia no WhatsApp. Responde no meio da produção, esquece pedidos, mistura encomendas.</div>
+            <div class="pain-step"><span class="step-label step-custo">Custo</span> R$ 2.500/mês em pedidos perdidos + retrabalho.</div>
+            <div class="pain-step"><span class="step-label step-solução">Solução</span> Bot WhatsApp com cardápio digital. Pedidos caem na planilha. Dono só confirma.</div>
+            <div class="pain-step"><span class="step-label step-beneficio">Resultado</span> 0 pedidos perdidos. Resposta em 45 segundos.</div>
+          </div>
+          <div class="proof">Confeitaria em Anhumas: 3 pedidos perdidos/dia → 0. 2 novos clientes/semana por indicação.</div>
+        </div>
+
+        <!-- Cadeia 2 -->
+        <div class="pain-card">
+          <div class="sector">🧁 Confeitaria • Financeiro</div>
+          <h3>Não Sabe se Tem Lucro no Bolo</h3>
+          <div class="chain">
+            <div class="pain-step"><span class="step-label step-dor">Dor</span> 14h por dia, 50 bolos/semana, mas no fim do mês não sabe se tá lucrando.</div>
+            <div class="pain-step"><span class="step-label step-custo">Custo</span> R$ 1.500/mês em prejuízo silencioso.</div>
+            <div class="pain-step"><span class="step-label step-solução">Solução</span> Dashboard que cruza vendas × custos. Relatório diário às 20h no Telegram.</div>
+            <div class="pain-step"><span class="step-label step-beneficio">Resultado</span> Lucro visível em tempo real. Decisão com dados.</div>
+          </div>
+          <div class="proof">Padaria que achava que lucrava R$ 3.000/mês. Dashboard revelou R$ 1.800. Cortou insumos e subiu para R$ 2.600.</div>
+        </div>
+
+        <!-- Cadeia 3 -->
+        <div class="pain-card">
+          <div class="sector">🧁 Confeitaria • Conhecimento</div>
+          <h3>Funcionário Saiu e Levou o Saber</h3>
+          <div class="chain">
+            <div class="pain-step"><span class="step-label step-dor">Dor</span> Funcionário treinado por 3 meses saiu e levou receitas, fornecedores, atalhos.</div>
+            <div class="pain-step"><span class="step-label step-custo">Custo</span> R$ 6.000 por cada funcionário que sai.</div>
+            <div class="pain-step"><span class="step-label step-solução">Solução</span> Vault de conhecimento permanente. Receitas, processos, checklists documentados.</div>
+            <div class="pain-step"><span class="step-label step-beneficio">Resultado</span> Novo funcionário aprende em 2 dias, não em 2 meses.</div>
+          </div>
+          <div class="proof">Confeitaria documentou 47 receitas. Funcionário saiu em janeiro. Novo entrou em fevereiro e já produzia igual em 1 semana.</div>
+        </div>
+
+        <!-- Cadeia 4 -->
+        <div class="pain-card">
+          <div class="sector">🛍️ Loja • Estoque</div>
+          <h3>Estoque Surpresa e Produto Parado</h3>
+          <div class="chain">
+            <div class="pain-step"><span class="step-label step-dor">Dor</span> Compra "no olho". Às vezes falta, às vezes sobra. Dinheiro travado em prateleira.</div>
+            <div class="pain-step"><span class="step-label step-custo">Custo</span> R$ 3.800/mês em estoque parado + compras de emergência.</div>
+            <div class="pain-step"><span class="step-label step-solução">Solução</span> Dashboard que cruza vendas × compras. Alerta automático no ponto de pedido.</div>
+            <div class="pain-step"><span class="step-label step-beneficio">Resultado</span> Compra certa, na hora certa. Zero "não temos".</div>
+          </div>
+          <div class="proof">Loja de roupas liberou R$ 7.000 de estoque parado. Vendas subiram 22%.</div>
+        </div>
+
+        <!-- Cadeia 6 -->
+        <div class="pain-card">
+          <div class="sector">🍽️ Restaurante • Delivery</div>
+          <h3>Cardápio do Delivery não Vende</h3>
+          <div class="chain">
+            <div class="pain-step"><span class="step-label step-dor">Dor</span> Cardápio no iFood com fotos ruins, descrições vagas, preço errado. Cliente vai embora.</div>
+            <div class="pain-step"><span class="step-label step-custo">Custo</span> R$ 3.500/mês em comissão sem retorno + fotos sem ROI.</div>
+            <div class="pain-step"><span class="step-label step-solução">Solução</span> Cardápio otimizado: descrições que vendem, fotos consistentes, precificação estratégica.</div>
+            <div class="pain-step"><span class="step-label step-beneficio">Resultado</span> Conversão dobra. Mesmo investimento gera mais pedido.</div>
+          </div>
+          <div class="proof">Restaurante reescreveu 30 descrições. Conversão: 2.1% → 4.8%. Receita extra: R$ 6.300/mês.</div>
+        </div>
+
+        <!-- Cadeia 8 -->
+        <div class="pain-card">
+          <div class="sector">✂️ Salão • Agenda</div>
+          <h3>Agenda Buraco e Cliente Não Volta</h3>
+          <div class="chain">
+            <div class="pain-step"><span class="step-label step-dor">Dor</span> Horários vagos. Cliente marca e não aparece. Outro queria e não tinha vaga.</div>
+            <div class="pain-step"><span class="step-label step-custo">Custo</span> R$ 4.000/mês em horários vagos + no-shows.</div>
+            <div class="pain-step"><span class="step-label step-solução">Solução</span> Lembrete 24h antes. Lista de espera automática. Agenda lotada.</div>
+            <div class="pain-step"><span class="step-label step-beneficio">Resultado</span> No-show caiu de 15% para 3%. Receita subiu R$ 4.350/mês.</div>
+          </div>
+          <div class="proof">Salão: 10 horários vagos/mês → 1. Lista de espera gera venda extra.</div>
+        </div>
+
+        <!-- Cadeia 10 -->
+        <div class="pain-card">
+          <div class="sector">🐾 Pet Shop • Vacinas</div>
+          <h3>Tutor Não Lembra da Vacina</h3>
+          <div class="chain">
+            <div class="pain-step"><span class="step-label step-dor">Dor</span> Tutor esqueceu da próxima dose. Pet shop não lembrou. Tutor volta com pet doente.</div>
+            <div class="pain-step"><span class="step-label step-custo">Custo</span> R$ 2.300/mês em clientes insatisfeitos + doenças preveníveis.</div>
+            <div class="pain-step"><span class="step-label step-solução">Solução</span> Calendário automatizado. Lembrete 7 dias antes no WhatsApp.</div>
+            <div class="pain-step"><span class="step-label step-beneficio">Resultado</span> Retorno para vacinas: 45% → 89%. Receita de vacinas subiu 97%.</div>
+          </div>
+          <div class="proof">Pet shop: taxa de retorno dobrou. Receita de vacinas quase triplicou.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════ SETORES ══════ -->
+    <section id="setores">
+      <h2 class="section-heading">Setores que Atendo</h2>
+      <p class="section-sub">_ onde automação gera resultado real</p>
+
+      <div class="journey-grid">
+        <div class="journey-col">
+          <h3>Soluções por Segmento</h3>
+
+          <div class="journey-item">
+            <div class="role">🧁 Confeitarias</div>
+            <div class="org">Foco: Anhumas/SP e Região</div>
+            <div class="period">Pedidos · Lucro · Conhecimento</div>
+            <div class="tags">
+              <span class="tag">Bot WhatsApp</span>
+              <span class="tag">Dashboard</span>
+              <span class="tag">Vault</span>
+            </div>
+          </div>
+
+          <div class="journey-item">
+            <div class="role">🛍️ Lojas e Comércios</div>
+            <div class="org">Estoque · Equipe · Vendas</div>
+            <div class="period">Estoque · FAQs · Treinamento</div>
+            <div class="tags">
+              <span class="tag">Dashboard</span>
+              <span class="tag">Vault</span>
+              <span class="tag">Alertas</span>
+            </div>
+          </div>
+
+          <div class="journey-item">
+            <div class="role">🍽️ Restaurantes</div>
+            <div class="org">Delivery · Cozinha · Cardápio</div>
+            <div class="period">iFood · Rappi · WhatsApp</div>
+            <div class="tags">
+              <span class="tag">Cardápio</span>
+              <span class="tag">Pedidos</span>
+              <span class="tag">Delivery</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="journey-col">
+          <h3>Resultados Comprovados</h3>
+
+          <div class="journey-item">
+            <div class="role">✂️ Salões de Beleza</div>
+            <div class="org">Agenda · Follow-up · Indicação</div>
+            <div class="period">Lembretes · Lista de espera</div>
+            <div class="tags">
+              <span class="tag">Agendamento</span>
+              <span class="tag">Follow-up</span>
+              <span class="tag">Lembretes</span>
+            </div>
+          </div>
+
+          <div class="journey-item">
+            <div class="role">🐾 Pet Shops</div>
+            <div class="org">Vacinas · Tutor · Retorno</div>
+            <div class="period">Calendário · WhatsApp · Lembrete</div>
+            <div class="tags">
+              <span class="tag">Calendário</span>
+              <span class="tag">Lembrete</span>
+              <span class="tag">WhatsApp</span>
+            </div>
+          </div>
+
+          <div class="journey-item">
+            <div class="role">💡 O que muda</div>
+            <div class="org">De achismo para dados. De caos para processo.</div>
+            <div class="period">Cada solução elimina custo invisível</div>
+            <div class="tags">
+              <span class="tag" style="border-color:var(--ds-accent-emerald);color:var(--ds-accent-emerald);">→ Resultado real</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ CTA ══════ -->
+    <section id="contato" class="cta-section">
+      <h2 class="section-heading">Quanto você está<br/>deixando na mesa?</h2>
+      <p class="section-sub" style="text-align:center;">_ diagnóstico gratuito da sua operação</p>
+
+      <a href="https://t.me/horoborusobsidian_bot" class="cta-card" target="_blank" rel="noopener">
+        <div class="email">pedro@lucas.com</div>
+        <div class="tagline">Trabalho com negócios locais que querem crescer sem depender da memória das pessoas.</div>
+      </a>
+
+      <div class="cta-socials">
+        <a href="https://t.me/horoborusobsidian_bot" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Telegram
+        </a>
+        <a href="https://wa.me/" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          WhatsApp
+        </a>
+        <a href="#hero">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Portfólio
+        </a>
+      </div>
+
+      <a href="https://t.me/horoborusobsidian_bot" class="cta-cta-btn" target="_blank" rel="noopener">
+        Mande sua mensagem →
+      </a>
+    </section>
+
+    <!-- ══════ FOOTER ══════ -->
+    <div class="footer">
+      <span class="footer-copy">© 2026 Pedro Lucas</span>
+      <div class="footer-links">
+        <a href="https://t.me/horoborusobsidian_bot" target="_blank" rel="noopener">Telegram</a>
+        <a href="https://wa.me/" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="#hero">Início</a>
+      </div>
+      <span class="footer-loc">São Paulo, SP</span>
+    </div>
+
+  </main>
+</body>
+</html>
